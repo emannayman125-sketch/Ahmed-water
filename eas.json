@@ -1,18 +1,4 @@
 {
-<<<<<<< HEAD
-  "build": {
-    "preview": {
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      }
-    },
-    "production": {
-      "android": {
-        "buildType": "apk"
-      }
-    }
-=======
   "cli": {
     "version": ">= 24.7.0",
     "appVersionSource": "remote"
@@ -31,6 +17,5 @@
   },
   "submit": {
     "production": {}
->>>>>>> 2772a8998f73ba256df119a839c562d83708d8ab
   }
 }
