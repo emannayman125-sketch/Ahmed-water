@@ -35,15 +35,15 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-   "plugins": [
-  [
-    "expo-notifications",
-    {
-      "icon": "./assets/notification-icon.png",
-      "color": "#3FA9F5",
-      "sounds": ["./assets/sounds/water_splash.wav"]
-    }
-  ]
-]
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#3FA9F5",
+          "sounds": ["./assets/water_splash.wav"]
+        }
+      ]
+    ]
   }
 }
