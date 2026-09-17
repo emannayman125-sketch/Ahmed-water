@@ -22,6 +22,7 @@ import { Settings } from '../types';
 
 const CHANNEL_ID = 'water-reminders';
 const NOTIFICATION_CATEGORY = 'water-reminder';
+const REMINDER_SOUND = 'water_splash.wav';
 
 const MESSAGES = [
   'Ahmed, time for some water 💧',
@@ -48,7 +49,7 @@ export async function ensureAndroidChannel() {
     name: 'Water Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 200, 100, 200],
-    sound: 'default',
+    sound: REMINDER_SOUND,
   });
 }
 
@@ -142,7 +143,7 @@ export async function rescheduleReminders(settings: Settings): Promise<void> {
         content: {
           title: 'Hey Ahmed 👋',
           body: randomMessage(seed++),
-          sound: settings.soundEnabled ? 'default' : undefined,
+          sound: settings.soundEnabled ? REMINDER_SOUND : undefined,
           categoryIdentifier: NOTIFICATION_CATEGORY,
           data: { source: 'ahmed-water-reminder' },
         },
@@ -173,7 +174,7 @@ export async function scheduleSnooze(minutes: number, settings: Settings) {
     content: {
       title: 'Hey Ahmed 👋',
       body: 'Snoozed reminder — time for that water 💧',
-      sound: settings.soundEnabled ? 'default' : undefined,
+      sound: settings.soundEnabled ? REMINDER_SOUND : undefined,
       categoryIdentifier: NOTIFICATION_CATEGORY,
       data: { source: 'ahmed-water-reminder' },
     },
