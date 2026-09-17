@@ -11,16 +11,12 @@
       "backgroundColor": "#0B1E2E",
       "resizeMode": "contain"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ahmed.water",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "remote-notification"
-        ]
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -45,13 +41,7 @@
         {
           "icon": "./assets/notification-icon.png",
           "color": "#3FA9F5",
-<<<<<<< HEAD
-          "sounds": [
-            "./assets/sounds/water_drop.wav"
-          ]
-=======
           "sounds": ["./assets/water_splash.wav"]
->>>>>>> 2772a8998f73ba256df119a839c562d83708d8ab
         }
       ]
     ],
