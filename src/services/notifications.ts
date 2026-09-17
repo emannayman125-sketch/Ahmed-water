@@ -20,8 +20,11 @@ import { Settings } from '../types';
 // take over.
 // ----------------------------------------------------------------------
 
-const CHANNEL_ID = 'water-reminders';
-const CHANNEL_ID_SILENT = 'water-reminders-silent';
+// Versioned channel IDs are intentional: Android persists channel settings.
+// A new ID guarantees that a previously-created silent/old channel cannot
+// override the new custom sound configuration after an app update.
+const CHANNEL_ID = 'water-reminders-v2';
+const CHANNEL_ID_SILENT = 'water-reminders-silent-v2';
 const NOTIFICATION_CATEGORY = 'water-reminder';
 
 // Matches the filename passed to the expo-notifications config plugin's
@@ -29,6 +32,7 @@ const NOTIFICATION_CATEGORY = 'water-reminder';
 // native location for each platform (Android res/raw, iOS bundle) at
 // build time, so this name works cross-platform without extra setup.
 const WATER_SOUND = 'water_drop.wav';
+const REMINDER_SOURCE = 'ahmed-water-reminder';
 
 const MESSAGES = [
   'Ahmed, time for some water 💧',
@@ -59,6 +63,8 @@ export async function ensureAndroidChannel() {
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 200, 100, 200],
     sound: WATER_SOUND,
+    enableVibrate: true,
+    enableLights: true,
   });
   await Notifications.setNotificationChannelAsync(CHANNEL_ID_SILENT, {
     name: 'Water Reminders (silent)',
@@ -98,7 +104,7 @@ export async function getPermissionStatus() {
  */
 export async function cancelAllReminders() {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  const ours = scheduled.filter((n) => n.content.data?.source === 'ahmed-water-reminder');
+  const ours = scheduled.filter((n) => n.content.data?.source === REMINDER_SOURCE);
   await Promise.all(ours.map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)));
 }
 
@@ -148,45 +154,45 @@ export async function rescheduleReminders(settings: Settings): Promise<void> {
   if (slots.length === 0) return;
 
   const now = new Date();
-  let seed = 0;
+  // Android has a limit on pending scheduled notifications. At a 30-minute
+  // interval a full two-day queue can exceed that limit, so we intentionally
+  // keep a compact rolling queue. The queue is refreshed whenever the app is
+  // opened/foregrounded or settings change.
+  const MAX_PENDING = Platform.OS === 'android' ? 48 : 60;
+  let scheduledCount = 0;
+  let dayOffset = 0;
 
-  const scheduleForDate = async (baseDate: Date) => {
+  while (scheduledCount < MAX_PENDING && dayOffset <= 2) {
+    const baseDate = new Date(now);
+    baseDate.setDate(now.getDate() + dayOffset);
+
     for (const minutesFromMidnight of slots) {
+      if (scheduledCount >= MAX_PENDING) break;
+
       const fireDate = new Date(baseDate);
       fireDate.setHours(0, 0, 0, 0);
       fireDate.setMinutes(minutesFromMidnight);
 
-      if (fireDate.getTime() <= now.getTime()) continue; // don't schedule the past
+      if (fireDate.getTime() <= now.getTime()) continue;
 
       await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Hey Ahmed 👋',
-          body: randomMessage(seed++),
-          // iOS reads the sound straight off the notification content;
-          // Android ignores this and uses the channel's sound instead
-          // (see channelForSettings below) — set here anyway so iOS
-          // gets the water-drop sound too.
+          body: randomMessage(scheduledCount),
           sound: settings.soundEnabled ? WATER_SOUND : undefined,
           categoryIdentifier: NOTIFICATION_CATEGORY,
-          data: { source: 'ahmed-water-reminder' },
+          data: { source: REMINDER_SOURCE },
         },
         trigger: {
           date: fireDate,
           channelId: Platform.OS === 'android' ? channelForSettings(settings) : undefined,
         } as Notifications.DateTriggerInput,
       });
+      scheduledCount += 1;
     }
-  };
 
-  // Today's remaining slots
-  await scheduleForDate(now);
-
-  // Tomorrow's full day, so the queue survives past midnight even if the
-  // app is never opened tomorrow. The app tops this up again on next
-  // foreground open (see AppContext's daily-rollover check).
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  await scheduleForDate(tomorrow);
+    dayOffset += 1;
+  }
 }
 
 export async function scheduleSnooze(minutes: number, settings: Settings) {
@@ -200,7 +206,7 @@ export async function scheduleSnooze(minutes: number, settings: Settings) {
       body: 'Snoozed reminder — time for that water 💧',
       sound: settings.soundEnabled ? WATER_SOUND : undefined,
       categoryIdentifier: NOTIFICATION_CATEGORY,
-      data: { source: 'ahmed-water-reminder' },
+      data: { source: REMINDER_SOURCE },
     },
     trigger: {
       date: fireDate,
@@ -218,15 +224,24 @@ export async function scheduleSnooze(minutes: number, settings: Settings) {
  */
 export async function ensureQueueFresh(settings: Settings): Promise<void> {
   if (settings.remindersPaused) return;
+
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  const ours = scheduled.filter((n) => n.content.data?.source === 'ahmed-water-reminder');
+  const ours = scheduled.filter((n) => n.content.data?.source === REMINDER_SOURCE);
   const now = Date.now();
-  const hasFutureBeyond18h = ours.some((n) => {
-    const trigger: any = n.trigger;
-    const t = trigger?.value ?? trigger?.date;
-    return t && new Date(t).getTime() - now > 18 * 60 * 60 * 1000;
-  });
-  if (ours.length === 0 || !hasFutureBeyond18h) {
+
+  const futureTimes = ours
+    .map((n) => {
+      const trigger: any = n.trigger;
+      const raw = trigger?.value ?? trigger?.date;
+      const time = raw ? new Date(raw).getTime() : NaN;
+      return Number.isFinite(time) ? time : null;
+    })
+    .filter((time): time is number => time !== null && time > now);
+
+  const latest = futureTimes.length ? Math.max(...futureTimes) : 0;
+  const needsRefresh = futureTimes.length < 8 || latest - now < 12 * 60 * 60 * 1000;
+
+  if (needsRefresh) {
     await rescheduleReminders(settings);
   }
 }

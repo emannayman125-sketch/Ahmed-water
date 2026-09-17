@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ahmed Water",
     "slug": "ahmed-water",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -11,12 +11,16 @@
       "backgroundColor": "#0B1E2E",
       "resizeMode": "contain"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ahmed.water",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -41,9 +45,16 @@
         {
           "icon": "./assets/notification-icon.png",
           "color": "#3FA9F5",
-          "sounds": ["./assets/sounds/water_drop.wav"]
+          "sounds": [
+            "./assets/sounds/water_drop.wav"
+          ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fb6aea2d-7414-4b20-9490-573d2763e44d"
+      }
+    }
   }
 }
