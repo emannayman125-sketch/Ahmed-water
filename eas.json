@@ -1,18 +1,4 @@
 {
-<<<<<<< HEAD
-  "build": {
-    "preview": {
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      }
-    },
-    "production": {
-      "android": {
-        "buildType": "apk"
-      }
-    }
-=======
   "cli": {
     "version": ">= 24.7.0",
     "appVersionSource": "remote"
@@ -23,14 +9,19 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
     "production": {}
->>>>>>> 2772a8998f73ba256df119a839c562d83708d8ab
   }
 }
