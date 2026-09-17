@@ -21,7 +21,14 @@ import { Settings } from '../types';
 // ----------------------------------------------------------------------
 
 const CHANNEL_ID = 'water-reminders';
+const CHANNEL_ID_SILENT = 'water-reminders-silent';
 const NOTIFICATION_CATEGORY = 'water-reminder';
+
+// Matches the filename passed to the expo-notifications config plugin's
+// "sounds" array in app.json. That plugin copies the file into the right
+// native location for each platform (Android res/raw, iOS bundle) at
+// build time, so this name works cross-platform without extra setup.
+const WATER_SOUND = 'water_drop.wav';
 
 const MESSAGES = [
   'Ahmed, time for some water 💧',
@@ -44,12 +51,25 @@ Notifications.setNotificationHandler({
 
 export async function ensureAndroidChannel() {
   if (Platform.OS !== 'android') return;
+  // Android ties sound to the channel, not to each notification, so we
+  // keep two channels — one with the water-drop sound, one silent — and
+  // pick between them per notification based on the Sound setting.
   await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
     name: 'Water Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 200, 100, 200],
-    sound: 'default',
+    sound: WATER_SOUND,
   });
+  await Notifications.setNotificationChannelAsync(CHANNEL_ID_SILENT, {
+    name: 'Water Reminders (silent)',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 200, 100, 200],
+    sound: null,
+  });
+}
+
+function channelForSettings(settings: Settings): string {
+  return settings.soundEnabled ? CHANNEL_ID : CHANNEL_ID_SILENT;
 }
 
 export async function registerNotificationCategory() {
@@ -142,13 +162,17 @@ export async function rescheduleReminders(settings: Settings): Promise<void> {
         content: {
           title: 'Hey Ahmed 👋',
           body: randomMessage(seed++),
-          sound: settings.soundEnabled ? 'default' : undefined,
+          // iOS reads the sound straight off the notification content;
+          // Android ignores this and uses the channel's sound instead
+          // (see channelForSettings below) — set here anyway so iOS
+          // gets the water-drop sound too.
+          sound: settings.soundEnabled ? WATER_SOUND : undefined,
           categoryIdentifier: NOTIFICATION_CATEGORY,
           data: { source: 'ahmed-water-reminder' },
         },
         trigger: {
           date: fireDate,
-          channelId: Platform.OS === 'android' ? CHANNEL_ID : undefined,
+          channelId: Platform.OS === 'android' ? channelForSettings(settings) : undefined,
         } as Notifications.DateTriggerInput,
       });
     }
@@ -168,18 +192,19 @@ export async function rescheduleReminders(settings: Settings): Promise<void> {
 export async function scheduleSnooze(minutes: number, settings: Settings) {
   const granted = await requestPermissions();
   if (!granted) return;
+  await ensureAndroidChannel();
   const fireDate = new Date(Date.now() + minutes * 60 * 1000);
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Hey Ahmed 👋',
       body: 'Snoozed reminder — time for that water 💧',
-      sound: settings.soundEnabled ? 'default' : undefined,
+      sound: settings.soundEnabled ? WATER_SOUND : undefined,
       categoryIdentifier: NOTIFICATION_CATEGORY,
       data: { source: 'ahmed-water-reminder' },
     },
     trigger: {
       date: fireDate,
-      channelId: Platform.OS === 'android' ? CHANNEL_ID : undefined,
+      channelId: Platform.OS === 'android' ? channelForSettings(settings) : undefined,
     } as Notifications.DateTriggerInput,
   });
 }

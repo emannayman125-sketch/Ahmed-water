@@ -115,6 +115,29 @@ touching the reminder or storage core.
   the app's navy/blue palette — wired up in `app.json`. Swap them for a
   designer's artwork whenever you're ready; the plumbing is already done.
 
+## Custom notification sound
+
+Reminders now play a short synthesized water-drop/splash sound
+(`assets/sounds/water_drop.wav`) instead of the OS default tone, wired
+up via the `expo-notifications` config plugin's `sounds` option in
+`app.json`. On Android, sound is tied to the notification *channel*
+rather than the individual notification, so the app keeps two channels
+— one with the water-drop sound, one silent — and schedules into
+whichever one matches the Sound toggle in Settings. iOS reads the sound
+directly off each notification.
+
+**This requires a fresh native build to take effect** — a sound file
+can't be added to an already-installed APK by just editing JS. Anyone
+testing this needs to run `eas build` again (see below) and reinstall.
+
+Full spoken reminders ("Time for water, Ahmed") aren't possible for a
+closed/background app — both iOS and Android block apps from
+autoplaying speech before the user opens a notification, as a
+platform-level anti-abuse restriction, not something this app can work
+around. If Ahmed turns on his device's built-in "read notifications
+aloud" accessibility feature, the *device* will read the message text
+itself — that's the closest real equivalent.
+
 ## Remaining known limitation
 
 - The generated icons are a placeholder illustration, not final brand
