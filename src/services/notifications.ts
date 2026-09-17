@@ -26,6 +26,7 @@ import { Settings } from '../types';
 const CHANNEL_ID = 'water-reminders-v2';
 const CHANNEL_ID_SILENT = 'water-reminders-silent-v2';
 const NOTIFICATION_CATEGORY = 'water-reminder';
+const REMINDER_SOUND = 'water_splash.wav';
 
 // Matches the filename passed to the expo-notifications config plugin's
 // "sounds" array in app.json. That plugin copies the file into the right
@@ -62,9 +63,13 @@ export async function ensureAndroidChannel() {
     name: 'Water Reminders',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 200, 100, 200],
+<<<<<<< HEAD
     sound: WATER_SOUND,
     enableVibrate: true,
     enableLights: true,
+=======
+    sound: REMINDER_SOUND,
+>>>>>>> 2772a8998f73ba256df119a839c562d83708d8ab
   });
   await Notifications.setNotificationChannelAsync(CHANNEL_ID_SILENT, {
     name: 'Water Reminders (silent)',
@@ -178,8 +183,13 @@ export async function rescheduleReminders(settings: Settings): Promise<void> {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Hey Ahmed 👋',
+<<<<<<< HEAD
           body: randomMessage(scheduledCount),
           sound: settings.soundEnabled ? WATER_SOUND : undefined,
+=======
+          body: randomMessage(seed++),
+          sound: settings.soundEnabled ? REMINDER_SOUND : undefined,
+>>>>>>> 2772a8998f73ba256df119a839c562d83708d8ab
           categoryIdentifier: NOTIFICATION_CATEGORY,
           data: { source: REMINDER_SOURCE },
         },
@@ -204,7 +214,11 @@ export async function scheduleSnooze(minutes: number, settings: Settings) {
     content: {
       title: 'Hey Ahmed 👋',
       body: 'Snoozed reminder — time for that water 💧',
+<<<<<<< HEAD
       sound: settings.soundEnabled ? WATER_SOUND : undefined,
+=======
+      sound: settings.soundEnabled ? REMINDER_SOUND : undefined,
+>>>>>>> 2772a8998f73ba256df119a839c562d83708d8ab
       categoryIdentifier: NOTIFICATION_CATEGORY,
       data: { source: REMINDER_SOURCE },
     },

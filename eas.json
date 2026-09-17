@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "build": {
     "preview": {
       "distribution": "internal",
@@ -11,5 +12,25 @@
         "buildType": "apk"
       }
     }
+=======
+  "cli": {
+    "version": ">= 24.7.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+>>>>>>> 2772a8998f73ba256df119a839c562d83708d8ab
   }
 }
